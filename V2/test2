@@ -1,0 +1,6 @@
+rng(10); % for reproducibility
+N = 1500;
+noise = 0.05;
+t = 3*pi/2 * (1 + 2*rand(N,1));
+h = 11 * rand(N,1);
+X = [t.*cos(t), h, t.*sin(t)] + noise*randn(N,3);

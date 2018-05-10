@@ -1,0 +1,179 @@
+\documentclass{article}
+\usepackage{latexsym,amsmath,amsthm,amssymb,epsfig}
+ \renewcommand*\familydefault{\sfdefault}
+%%
+%% to get Arial font as the sans serif font, uncomment following line:
+%% \renewcommand{\sfdefault}{phv} % phv is the Arial font
+\usepackage[sort,nocompress]{cite}
+\usepackage[small,bf,up]{caption}
+\renewcommand{\captionfont}{\footnotesize}
+\usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage{graphics,epsfig,graphicx,float,subfigure,color}
+\usepackage{algorithm,algorithmic}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{boxedminipage}
+\usepackage[sf,bf,tiny]{titlesec}
+ \usepackage[plainpages=false, colorlinks=true,
+   citecolor=blue, filecolor=blue, linkcolor=blue,
+   urlcolor=blue]{hyperref}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+%\usepackage[utf8]{inputenc}
+\DeclareMathOperator{\fun}{fun}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+
+\lstset{language=Matlab,%
+    %basicstyle=\color{red},
+    breaklines=true,%
+    morekeywords={matlab2tikz},
+    keywordstyle=\color{blue},%
+    morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+    identifierstyle=\color{black},%
+    stringstyle=\color{mylilas},
+    commentstyle=\color{mygreen},%
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,%
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt, % this defines how far the numbers are from the text
+    emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+    %emph=[2]{word1,word2}, emphstyle=[2]{style},    
+}
+
+
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+% see documentation for titlesec package
+% \titleformat{\section}{\large \sffamily \bfseries}
+\titlelabel{\thetitle.\,\,\,}
+
+\renewcommand{\baselinestretch}{0.994}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\alert}[1]{\textcolor{red}{#1}}
+
+\setlength{\emergencystretch}{20pt}
+
+
+\newcommand*{\matminus}{%
+  \leavevmode
+  \hphantom{0}%
+  \llap{%
+    \settowidth{\dimen0 }{$0$}%
+    \resizebox{1.1\dimen0 }{\height}{$-$}%
+  }%
+}
+
+\pagestyle{plain}
+%\pagestyle{myheadings}
+
+\textheight 8.4in
+\textwidth  6.5in
+\oddsidemargin 0pt \evensidemargin 0pt
+% paragraphs are either indented or spaced.
+%\setlength{\parindent}{2.5em}
+%\setlength{\parskip}{2.0ex}
+\newtheorem{definition}{Definition}[section]
+\newcommand\half{\frac{1}{2}}
+\pagestyle{empty}
+
+\begin{document}
+\begin{center}
+{\bf
+Convex and Non-Smooth Optimization \\
+Spring, 2018 \\
+}
+Project Report \\
+Peter Will
+\end{center}
+\vspace{.2in}
+\section{Introduction} \label{introduction}
+The Matrix Completion Problem consists of reconstructing the unknown or missing entries of a matrix from a relatively small set of its entries.  This problem features prominently in the design of recommendation systems, where a company may wish to make personalized item recommendations to its users on the basis of historical user-item feedback, as in the well-publized NetFlix Competition.  In the general case, a full-rank matrix $\in \mathbb{R}^{m \times n}$ will have $m \times n$ degress of freedom, and it is impossible to reconstruct it from only a sample of its entries.  On the other hand, if a matrix is low rank, then sampled entries in a sense "encode" information about the full matrix, and accurate reconstruction becomes tractable.  In 2008, Candes and Recht extended theoretical conditions under which perfect recovery of the original matrix was probabilistically bound.  Among other things, the authors showed that a low rank matrix solution could be obtained via the convex relaxation:
+\begin{alignat}{2} \label{eq:1}
+\textrm{min}& \quad &&||X||_* \\
+\textrm{s.t.}& &&X_{ij} = M_{ij}, \quad (i,j) \in \Omega \nonumber
+\end{alignat}
+Where $||X||_*$ is the nuclear norm of the low-rank reconstruction matrix $X$ and $\Omega$ is the set of indices over which the elements of $X$ are required to match those of the original matrix $M$.  An interesting variation of this problem is the noisy matrix completion problem.
+\begin{alignat}{2} \label{eq:2}
+\textrm{min}& \quad &&||X||_* \\
+\textrm{s.t.}& &&||X_{\Omega} - M_{\Omega}||_F \le \delta \nonumber
+\end{alignat}
+In \ref{eq:2}, the sampling constraint is relaxed so that entries of the original matrix are only required to be "$\delta$-close" to those of the low-rank reconstruction.  This formulation of the matrix completion problem is of real-world importance, as there is often a source of error in the observed values of the original matrix.  Alternatively, if the original matrix is not itself low-rank, one may still be interested in finding an approximate low-rank representation for it.  
+
+The convex formulation of the matrix completion problem shown in \ref{eq:1} and \ref{eq:2} has spurred much investigation into performant algorithic solutions.  Candes and Recht demonstrated that the problems could be cast as semi-definite programs, and are therefor able to be solved by general interior point methods.  However, these methods scale poorly and are therefor unsuitable for application to large datasets.  Consequently, in recent years many algorithms have been proposed.  Specifically, there has been a resurgence of interest in Alternating Direction Method algorithims for the matrix completition problem owing to its decomposable structure and analytically solvable sub problems.
+
+\section{ADM for MCC} \label{ADM for MCC}
+
+Papers by Yang and Yuan (2009) and Tao and Yuan (2009) have studied the application of ADM methods to the noisy matrix completion problem and their results are summarized below.  In the following, the noisy version of the problem given in \ref{eq:2} is first rewritten in ADM form.  Expressions for the augmented Lagrangian and resulting sub-problems are then derived.  Finally, the analytical solutions to these sub-problems along with explicit ADM iterate-updates are produced.
+
+We begin by introducing an auxillary variable $Y$ into \ref{eq:2} and writing the problem in ADM form as.  
+\begin{alignat}{2} \label{eq:3}
+\textrm{min}& \quad &&||X||_* \\
+\textrm{s.t.}& &&X -Y = 0 \nonumber\\
+& &&X \in \mathbb{R}^{m \times x}, \; Y \in \textbf{B}_\delta \nonumber
+\end{alignat}
+where for $\delta \ge 0$
+\begin{equation}
+\textbf{B}_\delta := \{ U \in \mathbb{R}^{m \times n}: ||U_\Omega - M_\Omega||_F \le \delta\}
+\end{equation} 
+represents the convex subspace of $\mathbb{R}^{m \times n}$ over which the relaxed sampling constraints are satisified. 
+The augmented Lagrangian of \ref{eq:3} is given by
+\begin{equation} \label{eq:5}
+\mathcal{L}(X,Y,Z,\beta) := ||X||_* - \langle Z, X - Y \rangle + \frac \beta 2 ||X-Y||^2_F
+\end{equation} 
+Where Z is the Lagrangian multiplier and $\beta \ge 0$ is the penalty paramater.  At a high level, ADM works by alternating between minimizing \ref{eq:5} with respect to the variables $X$ and $Y$.  Because the objective function of \ref{eq:3} is decomposable and is constrained over a convex set, each of the resulting sub-problems can be solved analytically.  The actual iterative scheme for ADM of \ref{eq:3} is as follows:
+\begin{subequations}
+\begin{align}
+X^{k+1} &= \textrm{arg} \; \min_X \mathcal{L}(X^k,Y^k,Z^k,\beta) \label{eq:6a}\\
+Y^{k+1} &= \textrm{arg} \; \min_Y \mathcal{L}(X^{k+1},Y^k,Z^k,\beta) \label{eq:6b}\\
+Z^{k+1} &= Z^k - \beta \left( X^{k+1} - Y^{k+1} \right) \label{eq:6c}
+\end{align} 
+\end{subequations}
+Optimality conditions require that for \ref{eq:6a} 
+\begin{equation} \label{eq:7}
+0 \in \partial (||X^k||_*) - \left[ Z^k - \beta (X^k - Y^k) \right]
+\end{equation} 
+Cai, Candes, Shen (2008) showed \ref{eq:7} can be solved via singular value shrinkage computation.  More specifically, let
+$$
+A^k = \frac 1 \beta Z^k + Y^k
+$$
+And denote its singular value decomposition as 
+$$
+A^k = U^k \Sigma^k (V^k)^T
+$$
+\ref{eq:7} can be rewritten as 
+\begin{equation} \label{eq:8}
+0 \in \frac 1 \beta ||X^k||_* + X^k - A^k
+\end{equation}
+Which is satisfied when
+\begin{equation} \label{eq:8}
+X^k = U^k \hat{\Sigma}^k (V^k)^T
+\end{equation}
+Where $\hat{\Sigma}^k$ is the matrix of singular values given by diag$( \{ ( \sigma_i^k - \frac 1 \beta)_+ \} )$.  Thus, an analytical solution to update given in \ref{eq:6a} exists.  It requires a singular value decomposition of the matrix $X$ which generally requires a $\mathcal{O}(n^3)$ complexity cost.  This ultimately ends up dominating the ADM's algorithm costs.  
+
+Turning now to the sub-problem of \ref{eq:6b} it is clear the minimization problem reduces to
+\begin{alignat}{2} \label{eq:3}
+\textrm{arg} \min_Y & \quad &&||X-Y||^2_F \\
+\textrm{s.t.}& &&Y \in \textbf{B}_\delta \nonumber
+\end{alignat}
+ That is, the minimizer $Y$ is the euclidean projection of $X$ onto $\textbf{B}$.
+%\begin{equation}
+%\langle Y - Y^{k+1}, Y^{k+1} + \frac 1 \beta Z^k - X^k \rangle \ge 0, \; \forall Y \in \textbf{B}_\delta
+%\end{equation}
+
+
+
+
+ 
+
+\end{document}
+
+
