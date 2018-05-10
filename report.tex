@@ -159,15 +159,15 @@ X^k = U^k \hat{\Sigma}^k (V^k)^T
 \end{equation}
 Where $\hat{\Sigma}^k$ is the matrix of singular values given by diag$( \{ ( \sigma_i^k - \frac 1 \beta)_+ \} )$.  Thus, an analytical solution to update given in \ref{eq:6a} exists.  It requires a singular value decomposition of the matrix $X$ which generally requires a $\mathcal{O}(n^3)$ complexity cost.  This ultimately ends up dominating the ADM's algorithm costs.  
 
-Turning now to the sub-problem of \ref{eq:6b} it is clear the minimization problem reduces to
-\begin{alignat}{2} \label{eq:3}
-\textrm{arg} \min_Y & \quad &&||X-Y||^2_F \\
+Turning now to the sub-problem of \ref{eq:6b} optimality conditions require that
+\begin{equation} \label{eq:9}
+\langle Y - Y^{k+1}, Y^{k+1} + \frac 1 \beta Z^k - X^k \rangle \ge 0, \; \forall Y \in \textbf{B}_\delta
+\end{equation}
+Consideration of this inequality shows that it is satisfied for all $Y$ if we chose $Y^{k+1}$ to be equal to the projection of $X^k - \frac 1 \beta Z^k$  onto $\textbf{B}_\delta$.  If we let $\mathcal{P}_{\textbf{B}_0}(\dot)$ denote the projection operator, then 
+\begin{alignat}{2} \label{eq:10}
+\mathcal{P}_{\textbf{B}_0}(\dot) = \textrm{arg} \min_Y & \quad &&||X-Y||^2_F \\
 \textrm{s.t.}& &&Y \in \textbf{B}_\delta \nonumber
 \end{alignat}
- That is, the minimizer $Y$ is the euclidean projection of $X$ onto $\textbf{B}$.
-%\begin{equation}
-%\langle Y - Y^{k+1}, Y^{k+1} + \frac 1 \beta Z^k - X^k \rangle \ge 0, \; \forall Y \in \textbf{B}_\delta
-%\end{equation}
 
 
 
