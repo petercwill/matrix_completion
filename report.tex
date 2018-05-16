@@ -21,9 +21,13 @@
    urlcolor=blue]{hyperref}
 \usepackage{enumitem}
 \usepackage{listings}
+\usepackage{framed}
 \usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\usepackage{ctable}
+\usepackage{caption} 
 %\usepackage[utf8]{inputenc}
 \DeclareMathOperator{\fun}{fun}
+\newtheorem{theorem}{Theorem}
 
 % Default fixed font does not support bold face
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
@@ -62,7 +66,7 @@
 
 \setlength{\emergencystretch}{20pt}
 
-
+\newtheorem{lemma}[theorem]{Lemma}
 \newcommand*{\matminus}{%
   \leavevmode
   \hphantom{0}%
@@ -76,8 +80,8 @@
 %\pagestyle{myheadings}
 
 \textheight 8.4in
-\textwidth  6.5in
-\oddsidemargin 0pt \evensidemargin 0pt
+\textwidth  5.5in
+\oddsidemargin 25pt \evensidemargin 25pt
 % paragraphs are either indented or spaced.
 %\setlength{\parindent}{2.5em}
 %\setlength{\parskip}{2.0ex}
@@ -96,7 +100,7 @@ Peter Will
 \end{center}
 \vspace{.2in}
 \section{Introduction} \label{introduction}
-The Matrix Completion Problem consists of reconstructing the unknown or missing entries of a matrix from a relatively small set of its entries.  This problem features prominently in the design of recommendation systems, where a company may wish to make personalized item recommendations to its users on the basis of historical user-item feedback, as in the well-publized NetFlix Competition.  In the general case, a full-rank matrix $\in \mathbb{R}^{m \times n}$ will have $m \times n$ degress of freedom, and it is impossible to reconstruct it from only a sample of its entries.  On the other hand, if a matrix is low rank, then sampled entries in a sense "encode" information about the full matrix, and accurate reconstruction becomes tractable.  In 2008, Candes and Recht extended theoretical conditions under which perfect recovery of the original matrix was probabilistically bound.  Among other things, the authors showed that a low rank matrix solution could be obtained via the convex relaxation:
+The Matrix Completion Problem consists of reconstructing the unknown or missing entries of a matrix from a relatively small set of its entries.  This problem features prominently in the design of recommendation systems, where a company may wish to make personalized item recommendations to its users on the basis of historical user-item feedback, as in the well-publicized NetFlix Competition.  Clearly, not all matrices can be reconstructed in this fashion.  This is immediately apparent for full rank matrices, as such a matrix $\in \mathbb{R}^{m \times n}$ will have $m \times n$ degrees of freedom, and it is impossible to reconstruct it without sampling all $m \times n$ entries.  On the other hand, if the matrix is of low rank then reconstruction from a partial sample becomes a tractable problem, as  sampled entries "encode," so to speak, information about the full matrix.  In 2009, Cand\'es and Recht extended theoretical conditions under which perfect recovery of low-rank matrices from uniform random sampling is assured with high probability, based upon the "incoherence" of the matrix's singular vectors \cite{Cand}.  Among other things, the authors showed that a low rank matrix solution could be obtained via the convex relaxation:
 \begin{alignat}{2} \label{eq:1}
 \textrm{min}& \quad &&||X||_* \\
 \textrm{s.t.}& &&X_{ij} = M_{ij}, \quad (i,j) \in \Omega \nonumber
@@ -108,13 +112,13 @@ Where $||X||_*$ is the nuclear norm of the low-rank reconstruction matrix $X$ an
 \end{alignat}
 In \ref{eq:2}, the sampling constraint is relaxed so that entries of the original matrix are only required to be "$\delta$-close" to those of the low-rank reconstruction.  This formulation of the matrix completion problem is of real-world importance, as there is often a source of error in the observed values of the original matrix.  Alternatively, if the original matrix is not itself low-rank, one may still be interested in finding an approximate low-rank representation for it.  
 
-The convex formulation of the matrix completion problem shown in \ref{eq:1} and \ref{eq:2} has spurred much investigation into performant algorithic solutions.  Candes and Recht demonstrated that the problems could be cast as semi-definite programs, and are therefor able to be solved by general interior point methods.  However, these methods scale poorly and are therefor unsuitable for application to large datasets.  Consequently, in recent years many algorithms have been proposed.  Specifically, there has been a resurgence of interest in Alternating Direction Method algorithims for the matrix completition problem owing to its decomposable structure and analytically solvable sub problems.
+The convex formulation of the matrix completion problem shown in \ref{eq:1} and \ref{eq:2} has spurred much investigation into performant algorithmic solutions.  Candes and Recht demonstrated that the problems could be cast as semi-definite programs, and are therefor able to be solved by general interior point methods.  However, these methods scale poorly and are therefor unsuitable for application to large datasets.  Consequently, in recent years many algorithms have been proposed.  Specifically, there has been a resurgence of interest in Alternating Direction Method algorithms for the matrix completion problem owing to its decomposable structure and analytically solvable sub problems.
 
-\section{ADM for MCC} \label{ADM for MCC}
+\section{ADM for MCC} \label{ADM for Matrix Completion}
 
-Papers by Yang and Yuan (2009) and Tao and Yuan (2009) have studied the application of ADM methods to the noisy matrix completion problem and their results are summarized below.  In the following, the noisy version of the problem given in \ref{eq:2} is first rewritten in ADM form.  Expressions for the augmented Lagrangian and resulting sub-problems are then derived.  Finally, the analytical solutions to these sub-problems along with explicit ADM iterate-updates are produced.
+Recent papers \cite{Tao}, \cite{Yang} have studied the application of ADM methods to the noisy matrix completion problem and their results are summarized below.  In the following, the noisy version of the problem given in \ref{eq:2} is first rewritten in ADM form.  Expressions for the augmented Lagrangian and resulting sub-problems are then derived.  Finally, the analytical solutions to these sub-problems along with explicit ADM iterate-updates are produced.
 
-We begin by introducing an auxillary variable $Y$ into \ref{eq:2} and writing the problem in ADM form as.  
+We begin by introducing an auxiliary variable $Y$ into \ref{eq:2} and writing the problem in ADM form as.  
 \begin{alignat}{2} \label{eq:3}
 \textrm{min}& \quad &&||X||_* \\
 \textrm{s.t.}& &&X -Y = 0 \nonumber\\
@@ -124,12 +128,12 @@ where for $\delta \ge 0$
 \begin{equation}
 \textbf{B}_\delta := \{ U \in \mathbb{R}^{m \times n}: ||U_\Omega - M_\Omega||_F \le \delta\}
 \end{equation} 
-represents the convex subspace of $\mathbb{R}^{m \times n}$ over which the relaxed sampling constraints are satisified. 
+represents the convex subspace of $\mathbb{R}^{m \times n}$ over which the relaxed sampling constraints are satisfied. 
 The augmented Lagrangian of \ref{eq:3} is given by
 \begin{equation} \label{eq:5}
 \mathcal{L}(X,Y,Z,\beta) := ||X||_* - \langle Z, X - Y \rangle + \frac \beta 2 ||X-Y||^2_F
 \end{equation} 
-Where Z is the Lagrangian multiplier and $\beta \ge 0$ is the penalty paramater.  At a high level, ADM works by alternating between minimizing \ref{eq:5} with respect to the variables $X$ and $Y$.  Because the objective function of \ref{eq:3} is decomposable and is constrained over a convex set, each of the resulting sub-problems can be solved analytically.  The actual iterative scheme for ADM of \ref{eq:3} is as follows:
+Where Z is the Lagrangian multiplier and $\beta \ge 0$ is the penalty parameter.  At a high level, ADM works by alternating between minimizing \ref{eq:5} with respect to the variables $X$ and $Y$.  Because the objective function of \ref{eq:3} is decomposable and is constrained over a convex set, each of the resulting sub-problems can be solved analytically.  The actual iterative scheme for ADM of \ref{eq:3} is as follows:
 \begin{subequations}
 \begin{align}
 X^{k+1} &= \textrm{arg} \; \min_X \mathcal{L}(X^k,Y^k,Z^k,\beta) \label{eq:6a}\\
@@ -141,7 +145,7 @@ Optimality conditions require that for \ref{eq:6a}
 \begin{equation} \label{eq:7}
 0 \in \partial (||X^k||_*) - \left[ Z^k - \beta (X^k - Y^k) \right]
 \end{equation} 
-Cai, Candes, Shen (2008) showed \ref{eq:7} can be solved via singular value shrinkage computation.  More specifically, let
+Following the approach of \cite{Cai}, \ref{eq:7} can be solved via singular value shrinkage computation.  More specifically, let
 $$
 A^k = \frac 1 \beta Z^k + Y^k
 $$
@@ -149,31 +153,301 @@ And denote its singular value decomposition as
 $$
 A^k = U^k \Sigma^k (V^k)^T
 $$
-\ref{eq:7} can be rewritten as 
+Using this definition, \ref{eq:7} can be rewritten as 
 \begin{equation} \label{eq:8}
 0 \in \frac 1 \beta ||X^k||_* + X^k - A^k
 \end{equation}
 Which is satisfied when
-\begin{equation} \label{eq:8}
+\begin{equation} \label{eq:9}
 X^k = U^k \hat{\Sigma}^k (V^k)^T
 \end{equation}
-Where $\hat{\Sigma}^k$ is the matrix of singular values given by diag$( \{ ( \sigma_i^k - \frac 1 \beta)_+ \} )$.  Thus, an analytical solution to update given in \ref{eq:6a} exists.  It requires a singular value decomposition of the matrix $X$ which generally requires a $\mathcal{O}(n^3)$ complexity cost.  This ultimately ends up dominating the ADM's algorithm costs.  
-
-Turning now to the sub-problem of \ref{eq:6b} optimality conditions require that
-\begin{equation} \label{eq:9}
+Where $\hat{\Sigma}^k$ is the matrix of singular values given by diag$( \{ ( \sigma_i^k - \frac 1 \beta)_+ \} )$, and $U$ and $V$ are the matrices of left and right singular vectors of $A$.  For convenience, we can define this singular value shrinkage operator as
+$$
+\mathcal{D}_{\frac 1 \beta}(A) = U(\Sigma - \frac 1 \beta I)_+(V)^T
+$$
+Thus, an analytical solution to the subproblem given in \ref{eq:6a} exists.  It should be noted that it requires a singular value decomposition of the matrix $X$ which generally requires a $\mathcal{O}(n^3)$ complexity cost.  This computation ultimately ends up dominating the ADM's overall computational cost.  
+\\\\
+Turning now to the sub-problem of \ref{eq:6b}, optimality conditions require that
+\begin{equation} \label{eq:10}
 \langle Y - Y^{k+1}, Y^{k+1} + \frac 1 \beta Z^k - X^k \rangle \ge 0, \; \forall Y \in \textbf{B}_\delta
 \end{equation}
-Consideration of this inequality shows that it is satisfied for all $Y$ if we chose $Y^{k+1}$ to be equal to the projection of $X^k - \frac 1 \beta Z^k$  onto $\textbf{B}_\delta$.  If we let $\mathcal{P}_{\textbf{B}_0}(\dot)$ denote the projection operator, then 
-\begin{alignat}{2} \label{eq:10}
-\mathcal{P}_{\textbf{B}_0}(\dot) = \textrm{arg} \min_Y & \quad &&||X-Y||^2_F \\
-\textrm{s.t.}& &&Y \in \textbf{B}_\delta \nonumber
+Consideration of this inequality shows that it is satisfied for all $Y \in \textbf{B}_\delta$ if we chose $Y^{k+1}$ to be equal to the projection of $X^k - \frac 1 \beta Z^k$  onto $\textbf{B}_\delta$.  Let $\mathcal{P}_{\textbf{B}_\delta}$ denote such a projection operator, and let $B = X^k - \frac 1 \beta Z^k$.  An explicit formula for $\mathcal{P}_{\textbf{B}_\delta}$ can be derived by defining it as its own minimization problem, in which
+\begin{alignat}{2} \label{eq:11}
+\mathcal{P}_{\textbf{B}_\delta}({B}) = \textrm{arg} \min_X & \quad &&||X-B||^2_F \\
+\textrm{s.t.}& && ||X_\Omega - M_\Omega||_F \le \delta \nonumber
 \end{alignat}
+The Lagrangian for the above minimization problem is given by 
+$$
+\mathcal{L}(X, \nu) = ||X - B||^2_F + \nu ( ||X_\Omega - M_\Omega||_F - \delta)
+$$
+and KKT conditions require that
+\begin{align*}
+X - B + \nu(X_\Omega - M_\Omega) &= 0 \\
+\nu ( ||X_\Omega - M_\Omega||_F - \delta) &= 0 \\
+||X_\Omega - M_\Omega||_F &\le \delta \\
+\nu &\ge 0
+\end{align*} 
+ It is easy to verify that the above system of equations is satisfied when
+ \begin{align*}
+ \nu &= \max \left\{ \frac{||B_\Omega - M_\Omega||_F}{\delta} -1, 0 \right\} \\
+ X &= B + \frac {\nu}{\nu + 1}(B_\Omega- M_\Omega) 
+ \end{align*}
+The solution for $X$ obtained defines the projection of $B$ onto $\textbf{B}_\delta$.  This in turn provides an analytical solution for the sub-problem of \ref{eq:6b}.  The explicit ADM iterate updates are summarized below.
+\begin{framed}
+\textbf{ADM Updates For the Noisy Matrix Completion Problem}
+\begin{subequations}
+\begin{align}
+X^{k+1} &= \mathcal{D}_{\frac 1 \beta}(\frac 1 \beta Z^k + Y^k) \label{eq:12a}\\
+Y^{k+1} &= \mathcal{P}_{\textbf{B}_\delta}(X^{k+1} - \frac 1 \beta Z^k) \label{eq:12b}\\
+Z^{k+1} &= Z^k - \beta \left( X^{k+1} - Y^{k+1} \right) \label{eq:12c}
+\end{align} 
+\end{subequations}
+\end{framed}
+It should be emphasized that the ability to derive closed form expressions for the subproblems of $\ref{eq:6a}$ and $\ref{eq:6b}$ is a result of the relative simplicity of the sampling operator used in the constraint of $\ref{eq:2}$.  
+\section{Numerical Experiment 1: ADM Vs. CVX SDPT3}
+
+The first experiment I ran compared the performance and results of my implementation of the ADM algorithm to CVX's interior point method.  I tested both the noiseless and noisy cases given in $\ref{eq:1}$ and $\ref{eq:2}$ under a wide range of parameters.  Data was generated for the test problem by a forming a a matrix $M = M_l M_r^T$, where $M_l \in \mathbb{R}^{m \times r}$ and $M_r \in \mathbb{R}^{n \times r}$ are matrices with entries drawn independently from $\mathcal{N}(0,1)$.  The resulting matrix $M \in \mathbb{R}^{m \times n}$ is of rank r.  
+
+I use SR to denote the sampling ratio of the original matrix, with $\textrm{SR} = \frac {p}{m n}$, where $p = |\Omega|$ is the number of sampled entries.  Per \cite{Chen} I measured the accuracy of the matrix completion by the relative error, defined as:
+$$
+\textrm{REer} = \frac {||X^{k} - M||_F}{||M||_F}
+$$For a stopping criterion I measured the relative change in iterate matrix reconstruction, terminating the algorithm when
+$$
+\frac {||X^{k+1} - X^{k}||_F}{||X^{k+1}||_F} \le tol = 2 \times 10^{-4}
+$$ 
+In the experiments that follow when using MATLAB's CVX package, I explicitly set the solver precision to $10^{-4}$ for more meaningful comparisons.  Results for the noiseless problem are shown in Table \ref{tab: noiseless}, and indicate that in all instances the ADM algorithm produced reconstruction matrices with similar errors to CVX's SDPT3 solver.  Since, many of the parameter sets selected for testing did not allow for exact reconstruction of the original matrix, small differences in the reconstruction error are to expected.
+
+In all cases, the measured run time of the ADM algorithm was faster than that of SDPT3.  The relative speedup was most pronounced for large matrices with high sampling ratios.  This is a result of the ADM algorithm's runtime being dominated by the singular value decomposition required in the X subproblem, which scales as $\mathcal{O}(N^3)$.  This computational complexity is independent of the number of elements sampled from the original matrix.  Indeed, ADM actually preforms better with increasing sampling ratios as fewer ADM iterations are required to reached the stopping criterion.  Conversely, the general interior point method used by SDPT3 scales with the number of constraints, and thus performs much worse at under large sample ratios.  Figure \ref{fig:speedup} illustrates how problem size and sampling ratio impacts the relative speedup of the methods, defined by
+$$
+\textrm{Speedup} = \frac {\textrm{CVX Time}} {\textrm{ADM Time}}
+$$ 
+Finally, Table \ref{tab:noisy} compares performance of the two solver algorithms on a noisy version of the matrix completion problem for varying orders of magnitude of noise.  Again similar reconstruction errors are obtained for both methods.   The results indicate that the runtime of the ADM does not increase in the presence of noise, unlike the SDPT3 solver.   
 
 
+\begin {table}
+\begin{center}
+\caption {Comparison of ADM and CVX SDPT3 for Noiseless problem} \label{tab: noiseless} 
+    \begin{tabular}{| l | r | r | r | r|}
+    \hline
+    (N, r, SR) & ADM REer & ADM Time (secs) & CVX REer & CVX Time (secs) \\ \specialrule{.25em}{0em}{0em} 
+	(25, 10, 0.1)&1.00790&0.164&1.01480&0.230\\ \hline
+	(25, 10, 0.25)&0.93850&0.034&0.93880&0.230\\ \hline
+	(25, 10, 0.75)&0.23280&0.015&0.23270&0.430\\ \specialrule{.125em}{0em}{0em} 
+	(25, 20, 0.1)&1.00400&0.209&1.02940&0.230\\ \hline
+	(25, 20, 0.25)&0.90770&0.033&0.90800&0.250\\ \hline
+	(25, 20, 0.75)&0.43280&0.012&0.43280&0.420\\ \specialrule{.25em}{0em}{0em} 
+	(50, 10, 0.1)&0.98800&0.276&0.98730&0.460\\ \hline
+	(50, 10, 0.25)&0.73940&0.057&0.73940&0.840\\ \hline
+	(50, 10, 0.75)&0.00036&0.027&0.00044&2.190\\ \specialrule{.125em}{0em}{0em} 
+	(50, 20, 0.1)&1.03660&0.284&1.04020&0.450\\ \hline
+	(50, 20, 0.25)&0.88650&0.065&0.88660&0.790\\ \hline
+	(50, 20, 0.75)&0.16490&0.034&0.16510&3.380\\ \specialrule{.25em}{0em}{0em} 
+	(100, 10, 0.1)&0.93160&0.227&0.93190&2.000\\ \hline
+	(100, 10, 0.25)&0.44940&0.139&0.44960&7.570\\ \hline
+	(100, 10, 0.75)&0.00015&0.058&0.00001&30.120\\ \specialrule{.125em}{0em}{0em} 
+	(100, 20, 0.1)&0.97590&0.340&0.97610&1.000\\ \hline
+	(100, 20, 0.25)&0.72670&0.132&0.72670&4.100\\ \hline
+	(100, 20, 0.75)&0.00026&0.064&0.00002&34.920\\ \specialrule{.25em}{0em}{0em} 
+	(500, 10, 0.1)&0.07350&8.906& - & -\\ \hline
+	(500, 10, 0.25)&0.00025&2.637&-&-\\ \hline
+	(500, 10, 0.75)&0.00008&1.354&-&-\\ \specialrule{.125em}{0em}{0em} 
+	(500, 20, 0.1)&0.60850&4.164&-&-\\ \hline
+	(500, 20, 0.25)&0.00033&2.657&-&-\\ \hline
+	(500, 20, 0.75)&0.00013&1.354&-&-\\ \specialrule{.25em}{0em}{0em} 
+	(1000, 10, 0.1)&0.00042&29.552&-&-\\ \hline
+	(1000, 10, 0.25)&0.00022&19.935&-&-\\ \hline
+	(1000, 10, 0.75)&0.00007&7.681&-&-\\ \specialrule{.125em}{0em}{0em} 
+	(1000, 20, 0.1)&0.02690&51.298&-&-\\ \hline
+	(1000, 20, 0.25)&0.00028&17.393&-&-\\ \hline
+	(1000, 20, 0.75)&0.00011&8.232&-&-\\ \specialrule{.25em}{0em}{0em} 
+
+	\hline
+    \end{tabular}
+ \caption*{Results are shown for groupings of $(N, r, SR)$ for random matrices generated in $\mathbb{R}^{N \times N}$ of Rank r} 
+
+\end{center}
+
+\end{table}
+\begin {table}
+\caption {Comparison of ADM and CVX SDPT3 for Noisy problem} \label{tab:noisy} 
+\begin{center}
+    \begin{tabular}{| l | r | r | r | r|}
+    \hline
+    (N, r, SR, $\delta$) & ADM REer & ADM Time (secs) & CVX REer & CVX Time (secs) \\ \specialrule{.25em}{0em}{0em} 
+(100, 10, 0.1, 0.1)&0.93150&0.228&0.93150&1.120\\ \hline
+(100, 10, 0.1, 1)&0.93250&0.248&0.93240&1.150\\ \hline
+(100, 10, 0.1, 10)&0.79220&0.325&0.79200&1.210\\ \specialrule{.125em}{0em}{0em} 
+(100, 10, 0.25, 0.1)&0.45080&0.134&0.45140&4.350\\ \hline
+(100, 10, 0.25, 1)&0.51560&0.133&0.51580&4.670\\ \hline
+(100, 10, 0.25, 10)&0.61540&0.134&0.61540&5.140\\ \specialrule{.125em}{0em}{0em} 
+(100, 10, 0.75, 0.1)&0.00840&0.084&0.00670&65.710\\ \hline
+(100, 10, 0.75, 1)&0.06490&0.151&0.06500&101.710\\ \hline
+(100, 10, 0.75, 10)&0.29690&0.057&0.29720&121.080\\ \specialrule{.25em}{0em}{0em}
+	\hline
+    \end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure}
+\caption{Relative Speedup of ADM:CVX, for a random matrix of Rank = 10} \label{fig:speedup}
+\centering
+\includegraphics[width=1\textwidth]{SR_versus_Dim.jpg}
+\end{figure}
+
+\section{Numerical Experiment 2: Using ADM to probe the boundary of recoverable matrices}
+
+Since the implemented ADM method proved to accurately reconstruct large matrices, I wanted to explore using it to experimentally verify the results of Cand\'es and Recht's 2008 paper.  In this paper the authors state the following theorem:
+\begin{theorem}
+Let M be an $n_1 \times n_2$ matrix of rank r with entries sampled uniformly from the random orthogonal model.  If m entries are observed from M, then there are constants $C$ and $c$ such that if,
+$$
+m \ge C n^{\frac 5 4}r \log n,
+$$
+then the minimizer to the problem \ref{eq:1} is unique and equal to M with probability at least $1 - cn ^ {-3}$. 
+\end{theorem}
+Since the setup in the first experiment fits the assumptions of the theorem it is of interest to see if experimental evidence for this theory can be observed.  In this experiment, the matrix dimensions were fixed at $100 \times 100$, and 10 independent trials were performed for different rank and sampling ratio parameter sets.  As Figure \ref{fig:bound} shows, there is a clear boundary in the nature of the reconstruction error as rank and sampling ratio change.  More specifically, exact matrix recovery occurs under relatively high sampling ratios and low rank parameter pairings.
+
+\begin{figure}
+\caption{ADM recovery of low rank solutions.  The x-axis shows the rank of the generated data matrix.  The y-axis shows the sampling ratio.  The cell-value represents the proportion of trials that resulted in reconstruction errors less than the threshold of $10^{-3}$} \label{fig:bound}
+\centering
+\includegraphics[width=1\textwidth]{boundrary_1.jpg}
+\end{figure}
+
+\section{Extending the Model to a new class of problems}
+
+So far, the models considered in \ref{eq:1} and \ref{eq:2} have focused on matrix completion from a partial sampling of elements.  However, the ADM algorithm and associated subproblem solutions extend naturally to another interesting problem.  The Low Rank Recovery problem attempts to find the nearest low-rank approximation of a given matrix.  A special form of it is given in \ref{eq:13} below:
+\begin{alignat}{2} \label{eq:13}
+\textrm{min}_{A,E}& \quad &&||A||_* + \tau ||E||_1\\
+\textrm{s.t.}& &&||M - A - E||_F \le \delta \nonumber
+\end{alignat}
+Here, once again, we seek a low rank approximation of a matrix via the use of the nuclear norm.  Unlike the problem posed in \ref{eq:1} and \ref{eq:2}, however, we assume full knowledge of the original matrix $A$.  Additionally, we assume that the entires of $A$ are subject to two types of corruption.  The first is a low magnitude Gaussian white noise, assumed to effect all entries of $A$.  This is introduced by means of the inequality constraint.  The second is an arbitrarily large, sparse source of error.  This "impulse error" enters the problem as the matrix $E$, and is minimized directly in the objective function. 
+
+This model captures the so-called Robust Principal Component Analysis (PCA) problem.  PCA is a fundamental operation in data analysis and is used extensively in statistics, computer vision, and machine learning applications.  Unfortunately, PCA can fail badly when the data contains outliers or badly corrupted elements.  The minimization problem \ref{eq:13} presents an approach that produces a low-rank representation of the data which is robust in the presence of these sorts of abnormalities.
+
+To reformulate the problem in ADM form, I follow the approach of \cite{Wright} and introduce a variable substitution $Y = M - A - E$, is used.  The new problem becomes:
+ \begin{alignat}{2} \label{eq:14}
+\textrm{min}_{A,E,Y}& \quad &&||A||_* + \tau ||E||_1\\
+\textrm{s.t.}& &&A + E + A = M, \nonumber \\
+\textrm{s.t.}& && Y \in \textbf{B} := \{ Y \in \mathbb{R}^{m \times n} \; | \; ||Y||_F \le \delta \} \nonumber
+\end{alignat}
+Note that while the convex constraint on $Y$ no longer makes use of a sampling operator, \ref{eq:14} bares a strong resemble to \ref{eq:3}.  The augmented Lagrangian of \ref{eq:14} is given by:
+\begin{equation}
+\mathcal{L}(A,E,Y,Z,\beta) := ||A||_* + \tau ||E||_1 - \langle Z, A + E + Y - M \rangle + \frac \beta 2 ||A + E + Y - M||^2_F
+\end{equation}
+And, the ADM subproblems now take the form
+\begin{subequations}
+\begin{align}
+Y^{k+1} &= \textrm{arg} \; \min_{Y \in \textbf{B}} \frac \beta 2 ||Y + A^k + E^k - \frac 1 \beta Z^k - M||^2_F \label{eq:16a}\\
+E^{k+1} &= \textrm{arg} \; \min_{E} \tau ||E||_1 + \frac \beta 2 ||E + A^k + Y^{k+1} - \frac 1 \beta Z^k - M||^2_F \label{eq:16b}\\
+A^{k+1} &= \textrm{arg} \; \min_{A} ||A||_* + \frac \beta 2 ||A + E^{k+1} + Y^{k+1} - \frac 1 \beta Z^k - M||^2_F \label{eq:16c}\\
+Z^{k+1} &= Z^k - \beta \left( A^{k+1} + E^{k+1} + Y^{k+1} - M \right) \label{eq:16d}
+\end{align} 
+\end{subequations}
+In solving these subproblems we note that the updates for $Y$ and $A$ are nearly identical to the solutions produced for subproblems \ref{eq:6b} and \ref{eq:6a}, respectively.  Indeed, the update for $Y$ is given by the same projection operator derived in \ref{eq:11}, however, the sampling operator is no longer used.  Similarly, an analytical solution for \ref{eq:16c} can be written in terms of the shrinkage operator defined in \ref{eq:9}.    For the subproblem of \ref{eq:16b} we make use of the following lemma found in \cite{Tao}. 
+\begin{lemma}
+For $\mu > 0$ and $\textbf{T} \in \mathbb{R}^{m \times n}$, the solution of the follwoing problem
+$$
+\min_S \mu ||S||_1 + \frac 1 2||S-\textbf{T}||^2_F,
+$$
+is given by $\mathcal{S}_\mu(\textbf{T} \in \mathbb{R}^{m \times n}$, which is defined component-wise as 
+$$
+( \mathcal{S}_u( \textbf{T} ) )_{ij} := \max \{ \textrm{abs}(\textbf{T}_{ij}) - \mu, 0 \} \cdot \textrm{sign} (\textbf{T}_{ij}).
+$$
+\end{lemma}
+Thus, as before, the ADM iterate updates all have analytical solutions.  These are presented below:
+\begin{framed}
+\textbf{ADM updates for Noisy Low Rank Recovery}
+\begin{subequations}
+\begin{align}
+Y^{k+1} &= \mathcal{P}_{\textbf{B}_\delta}( \frac 1 \beta Z^k + M - A^k - E^k) \label{eq:17a}\\
+E^{k+1} &= \mathcal{S}_{\tau / \beta}(\frac 1 \beta Z^k + M - A^k - Y^{k+1}) \label{eq:17b} \\
+A^{k+1} &= \mathcal{D}_{\frac 1 \beta}(\frac 1 \beta Z^k + M - Y^{k+1} - E^{k+1}) \label{eq:17c}\\
+Z^{k+1} &= Z^k - \beta \left( A^{k+1} + E^{k+1} + Y^{k+1} - M \right) \label{eq:12c}
+\end{align} 
+\end{subequations}
+\end{framed}
+\section{Numerical Experiment 3: Low Rank Recovery in the presence of noise and sparse impulse errors}
+
+I tested the efficacy of the ADM implementation for the problem given in \ref{eq:13} by examining its performance on a matrix $A = M + S + E$.  Here, $M$ represents the original low rank data we wish to recover.  It was created by taking the matrix product of  $M_l$ and $M_r^T$, where $M_l \in \mathbb{R}^{m \times r}$ and $M_r \in \mathbb{R}^{n \times r}$ are matrices with entries drawn independently from $\mathcal{N}(0,1)$.  The matrix $S \in \mathbb{R}^{n \times m}$ had entries drawn from $\mathcal{N}(0,1)$, and denotes the Gaussian noise effecting all entries of M.  Finally, the support for the sparse matrix $E$ was chosen uniformly at random.  It's non-zero entries were given values drawn uniformly from the interval [-500,500].  Following the approach of Tao \& Yuan I set $\tau = \frac 1 {\sqrt{n}}$.  Figure \ref{fig:PCA} shows how the rank of the recovered matrix converges to the rank of the original matrix as the ADM algorithm iterates.
+\begin{figure}
+\caption{ADM recovery of low rank solutions.  (TOP) The rank of the recovered matrix $M^*$ at each iteration is plotted for an example matrix $A \in \mathbb{R}^{500 \times 500}$ with rank = 25.  $\textrm{nnz}(E) = 12500$.  (BOTTOM) The reconstruction error of the recovered matrix.}
+\label{fig:PCA}
+\centering
+\includegraphics[width=300pt]{pca1.jpg} 
+\includegraphics[width=300pt]{pca2.jpg}
+\end{figure}
 
 
+\section{Conclusion}
+This report has surveyed some of the recent work done to solve the Matrix Completion and Noisy Low Rank Recovery problems.  The ADM algorithm is especially well suited to these tasks as they feature separable objective functions over convex constraints.  The resulting sub-problems are simple enough that they can be solved analytically.  The dominate cost for both the ADM matrix completion algorithm and the ADM low rank recovery algorithm is a singular value decomposition.  This scales with the problem size as $\mathcal{O}(n^3)$ and consequently, the algorithms vastly outperformed the general SDPT3 solver.  
+
+Further acceleration of these methods is possible.  While in this report and accompanying MATLAB code I performed a full singular value decomposition of the given matrix, as authors Lin et al. point out, only a partial decomposition is required.  Using the MATLAB library PROPACK and rank prediction it is possible to reduce the decomposition cost to $\mathcal{O}(rN^2)$.  Additionally, many problems faced in the real world do not lend themselves to such tidy analytical solutions.  Given more time, I would like to analyze some of the recent work that has gone into linearizing more complex operators for the Matrix Completion and Low Rank Recovery problems.
+
+\pagebreak
+\newpage
+\begin{thebibliography}{9}
+
+\bibitem{Cai} 
+Cai, Jian-Feng, Emmanuel J. Cand\'es, and Zuowei Shen.
+\textit{A singular value thresholding algorithm for matrix completion.}
+SIAM Journal on Optimization 20, no. 4 (2010): 1956-1982.
+
+\bibitem{Cand} 
+Cand\'es, Emmanuel J., and Benjamin Recht.
+\textit{Exact matrix completion via convex optimization.}
+Foundations of Computational mathematics 9, no. 6 (2009): 717.
+
+
+\bibitem{Chen} 
+Chen, Caihua, Bingsheng He, and Xiaoming Yuan.
+\textit{Matrix completion via an alternating direction method.}
+IMA Journal of Numerical Analysis 32, no. 1 (2012): 227-245.
+
+\bibitem{Lin} 
+Lin, Zhouchen, Risheng Liu, and Zhixun Su.
+\textit{Linearized alternating direction method with adaptive penalty for low-rank representation.}
+Advances in neural information processing systems, pp. 612-620. 2011
+
+\bibitem{Tao} 
+Tao, Min, and Xiaoming Yuan.
+\textit{Recovering low-rank and sparse components of matrices from incomplete and noisy observations.}
+SIAM Journal on Optimization 21, no. 1 (2011): 57-81.
+
+\bibitem{Wright} 
+Wright, John, Arvind Ganesh, Shankar Rao, Yigang Peng, and Yi Ma.
+\textit{Robust principal component analysis: Exact recovery of corrupted low-rank matrices via convex optimization.}
+Advances in neural information processing systems, pp. 2080-2088. 2009.
+
+\bibitem{Xiaoming} 
+Xiaoming Yuan and Junfeng Yang. 
+\textit{Sparse and Low-Rank Matrix Decomposition Via Alternating Direction Method}. 
+ preprint, 12, 2..
  
+\bibitem{Yang} 
+Yang, Junfeng, and Xiaoming Yuan.
+\textit{Linearized augmented Lagrangian and alternating direction methods for nuclear norm minimization.}
+Mathematics of computation 82, no. 281 (2013): 301-329.
 
+\end{thebibliography}
+\pagebreak
+\newpage
+\section{Matlab Code}
+\section*{ADM\_MC.m}
+This script contained my implementation of the ADM solution for the noisy matrix completion problem used for the first two numerical experiments.
+\lstinputlisting{ADM_MC.m}
+\vspace{10mm}
+\section*{gen\_data.m}
+This script contained a helper function to generate data for the first two numerical experiments.
+\lstinputlisting{gen_data.m}
+\vspace{10mm}
+\section*{cvx\_solver.m}
+This script contained my implementation of CVX's SDPT3 solver for comparison against the ADM method in the first numerical experiment.
+\lstinputlisting{cvx_solver.m}
+\section*{ADM\_LRR.m}
+This script contained my implementation of the ADM solution for the Low Rank Recovery problem of the third numerical experiment.
+\lstinputlisting{ADM_LRR.m}
+\section*{gen\_data\_lrr.m}
+This script contained a helper function to generate data for the third numerical experiment.
+\lstinputlisting{gen_data_lrr.m}
 \end{document}
 
 

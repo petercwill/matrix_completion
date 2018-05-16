@@ -1,10 +1,10 @@
-function X_hat = ADM(M, inds, delta)
-
+function [X_hat, iter, time, opt_val] = ADM(M, inds, delta)
+tic
 [m,n] = size(M);
 X = randn(size(M));
 X(inds) = M(inds);
 Z = randn(size(M));
-tol = 2*10^-4;
+tol = 10^-4;
 stop_criteria = inf;
 iter = 0;
 beta = 2.5 / (m*n)^.5;
@@ -21,6 +21,9 @@ while(stop_criteria > tol)
     stop_criteria = REER(X, X_new);
     X = X_new;
     Z = Z - gamma*beta*(X-Y);
-    fprintf('Iter: %d, Err: %f, Tol: %f\n',iter, REER(X,M), stop_criteria);
+    %fprintf('Iter: %d, Err: %f, Tol: %f\n',iter, REER(X,M), stop_criteria);
 end
+time = toc;
+[u,s,v] = svd(X);
+opt_val = sum(sum(s));
 X_hat = X;
